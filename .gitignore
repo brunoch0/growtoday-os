@@ -1,0 +1,23 @@
+.DS_Store
+node_modules/
+*.log
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Build artifacts
+dist/
+build/
+
+# OS
+Thumbs.db
+
+# Source asset archives (kept locally only)
+*.fbx
+*.psd
+*.ai
