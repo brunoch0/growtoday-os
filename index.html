@@ -2868,7 +2868,7 @@ async function awFetchToday() {
 
 async function awUpdateCard() {
   const data = await awFetchToday();
-  const card = document.querySelector('[data-id="습관"]') || document.querySelector('[data-id="routine"]');
+  const card = document.querySelector('[data-id="habits"]');
   if (!card || !data) return;
   const foot = card.querySelector('.unit-foot');
   if (!foot) return;
