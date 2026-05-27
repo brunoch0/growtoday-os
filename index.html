@@ -1594,6 +1594,8 @@ body {
     </div>
   </header>
 
+  <div id="big-clock" style="text-align:center;padding:10px 0 6px;font-family:var(--mono);font-size:42px;font-weight:600;letter-spacing:0.08em;color:#E5E7EB;border-bottom:1px solid rgba(255,255,255,0.06);"></div>
+
   <div class="kpi-row">
     <div class="kpi">
       <div class="kpi-label">Active Units</div>
@@ -2563,6 +2565,8 @@ let opsCount = 12401;
 function updateTime() {
   const d = dubaiNow();
   document.getElementById('datetime').textContent = `DUBAI · ${fmtTime(d)}`;
+  const bigClockEl = document.getElementById('big-clock');
+  if (bigClockEl) bigClockEl.textContent = fmtTime(d);
   const upMs = Date.now() - START;
   const h = Math.floor(upMs / 3600000);
   const m = Math.floor((upMs % 3600000) / 60000);
@@ -2842,8 +2846,8 @@ async function awFetchToday() {
     const end = new Date(now); end.setHours(23,59,59,999);
 
     const [afkResp, winResp] = await Promise.all([
-      fetch(`http://localhost:5600/api/0/buckets/aw-watcher-afk_Mac-2.lan/events?start=${start.toISOString()}&end=${end.toISOString()}&limit=1000`),
-      fetch(`http://localhost:5600/api/0/buckets/aw-watcher-window_Mac-2.lan/events?start=${start.toISOString()}&end=${end.toISOString()}&limit=1000`)
+      fetch(`/api/0/buckets/aw-watcher-afk_Mac-2.lan/events?start=${start.toISOString()}&end=${end.toISOString()}&limit=1000`),
+      fetch(`/api/0/buckets/aw-watcher-window_Mac-2.lan/events?start=${start.toISOString()}&end=${end.toISOString()}&limit=1000`)
     ]);
 
     const afk = await afkResp.json();
@@ -2872,13 +2876,41 @@ async function awUpdateCard() {
   if (!card || !data) return;
   const foot = card.querySelector('.unit-foot');
   if (!foot) return;
-  const topStr = data.topApps.map(([app, min]) => `<span style="font-size:10px;color:var(--text-secondary)">${app} ${Math.round(min)}m</span>`).join(' · ');
+  const totalMin = data.activeMin + data.idleMin || 1;
+  const focusPct = Math.round(data.activeMin / totalMin * 100);
+  const appColors = ['#84CC16','#22D3EE','#A78BFA','#F472B6','#FB923C'];
+  const maxApp = data.topApps[0]?.[1] || 1;
+  const appBars = data.topApps.map(([app, min], i) => `
+    <div style="margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;">
+        <span style="color:#9CA3AF;">${app}</span>
+        <span style="color:#E5E7EB;font-family:var(--mono);">${Math.round(min)}m</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${Math.round(min/maxApp*100)}%;background:${appColors[i]};border-radius:2px;transition:width 0.6s ease;"></div>
+      </div>
+    </div>`).join('');
   foot.insertAdjacentHTML('afterbegin', `
-    <div style="display:flex;gap:12px;margin-bottom:8px;font-family:var(--mono);font-size:11px;">
-      <span style="color:#84CC16">▶ ${Math.floor(data.activeMin/60)}h ${data.activeMin%60}m 집중</span>
-      <span style="color:#6B7280">◉ ${Math.floor(data.idleMin/60)}h ${data.idleMin%60}m 휴식</span>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+      <div style="position:relative;width:54px;height:54px;flex-shrink:0;">
+        <svg width="54" height="54" style="transform:rotate(-90deg)">
+          <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5"/>
+          <circle cx="27" cy="27" r="22" fill="none" stroke="#84CC16" stroke-width="5"
+            stroke-dasharray="${Math.round(focusPct * 1.382)} 138.2" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#84CC16;font-family:var(--mono);">${focusPct}%</div>
+      </div>
+      <div style="flex:1;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span style="font-size:11px;color:#84CC16;">▶ ${Math.floor(data.activeMin/60)}h ${data.activeMin%60}m 집중</span>
+          <span style="font-size:11px;color:#6B7280;">◉ ${Math.floor(data.idleMin/60)}h ${data.idleMin%60}m 휴식</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${focusPct}%;background:linear-gradient(90deg,#84CC16,#22D3EE);border-radius:3px;"></div>
+        </div>
+      </div>
     </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">${topStr}</div>
+    <div style="margin-bottom:4px;">${appBars}</div>
   `);
 }
 
