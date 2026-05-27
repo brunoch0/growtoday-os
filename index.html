@@ -2919,6 +2919,21 @@ async function awUpdateCard() {
 awUpdateCard();
 setInterval(awUpdateCard, 60000);
 
+// GA4 Data Integration
+async function ga4FetchData() {
+  try {
+    const r = await fetch('/ga-data.json');
+    const data = await r.json();
+    const dt = data.dubaitoday;
+    if (!dt) return;
+    const el = document.getElementById('kpi-events');
+    if (el) el.innerHTML = `${dt.pageviews.toLocaleString()} <span class="kpi-delta">+${dt.users} users</span>`;
+  } catch(e) {}
+}
+ga4FetchData();
+setInterval(ga4FetchData, 300000);
+
+
 
 // Wait one frame so layout settles before measuring node positions
 requestAnimationFrame(() => {
