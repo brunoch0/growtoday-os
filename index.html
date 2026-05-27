@@ -2890,7 +2890,9 @@ async function awUpdateCard() {
         <div style="height:100%;width:${Math.round(min/maxApp*100)}%;background:${appColors[i]};border-radius:2px;transition:width 0.6s ease;"></div>
       </div>
     </div>`).join('');
-  foot.insertAdjacentHTML('afterbegin', `
+  const existing = foot.querySelector('#aw-panel');
+  if (existing) existing.remove();
+  foot.insertAdjacentHTML('afterbegin', `<div id='aw-panel'>`+`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
       <div style="position:relative;width:54px;height:54px;flex-shrink:0;">
         <svg width="54" height="54" style="transform:rotate(-90deg)">
@@ -2911,10 +2913,11 @@ async function awUpdateCard() {
       </div>
     </div>
     <div style="margin-bottom:4px;">${appBars}</div>
-  `);
+  </div>`);
 }
 
 awUpdateCard();
+setInterval(awUpdateCard, 60000);
 
 
 // Wait one frame so layout settles before measuring node positions
