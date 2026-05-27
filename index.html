@@ -2655,7 +2655,7 @@ function whoopIsExpired(t) {
 // Step 1: Redirect to WHOOP OAuth
 function whoopLogin() {
   const state = Math.random().toString(36).slice(2);
-  sessionStorage.setItem('whoop_state', state);
+  localStorage.setItem('whoop_state', state);
   const params = new URLSearchParams({
     client_id: WHOOP_CLIENT_ID,
     redirect_uri: WHOOP_REDIRECT_URI,
@@ -2677,7 +2677,7 @@ async function whoopHandleCallback() {
   const state = params.get('state');
   if (!code) return false;
 
-  const savedState = sessionStorage.getItem('whoop_state');
+  const savedState = localStorage.getItem('whoop_state');
   if (state !== savedState) { console.error('WHOOP state mismatch'); return false; }
 
   try {
