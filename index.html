@@ -2834,6 +2834,57 @@ renderSections();
 decorateReferralLinks();
 whoopInit();
 
+// ActivityWatch Integration
+async function awFetchToday() {
+  try {
+    const now = new Date();
+    const start = new Date(now); start.setHours(0,0,0,0);
+    const end = new Date(now); end.setHours(23,59,59,999);
+
+    const [afkResp, winResp] = await Promise.all([
+      fetch(`http://localhost:5600/api/0/buckets/aw-watcher-afk_Mac-2.lan/events?start=${start.toISOString()}&end=${end.toISOString()}&limit=1000`),
+      fetch(`http://localhost:5600/api/0/buckets/aw-watcher-window_Mac-2.lan/events?start=${start.toISOString()}&end=${end.toISOString()}&limit=1000`)
+    ]);
+
+    const afk = await afkResp.json();
+    const win = await winResp.json();
+
+    let activeMin = 0, idleMin = 0;
+    afk.forEach(e => {
+      if (e.data.status === 'not-afk') activeMin += e.duration / 60;
+      else idleMin += e.duration / 60;
+    });
+
+    const appMap = {};
+    win.forEach(e => {
+      const app = e.data.app || 'Unknown';
+      appMap[app] = (appMap[app] || 0) + e.duration / 60;
+    });
+    const topApps = Object.entries(appMap).sort((a,b) => b[1]-a[1]).slice(0,3);
+
+    return { activeMin: Math.round(activeMin), idleMin: Math.round(idleMin), topApps };
+  } catch(e) { return null; }
+}
+
+async function awUpdateCard() {
+  const data = await awFetchToday();
+  const card = document.querySelector('[data-id="습관"]') || document.querySelector('[data-id="routine"]');
+  if (!card || !data) return;
+  const foot = card.querySelector('.unit-foot');
+  if (!foot) return;
+  const topStr = data.topApps.map(([app, min]) => `<span style="font-size:10px;color:var(--text-secondary)">${app} ${Math.round(min)}m</span>`).join(' · ');
+  foot.insertAdjacentHTML('afterbegin', `
+    <div style="display:flex;gap:12px;margin-bottom:8px;font-family:var(--mono);font-size:11px;">
+      <span style="color:#84CC16">▶ ${Math.floor(data.activeMin/60)}h ${data.activeMin%60}m 집중</span>
+      <span style="color:#6B7280">◉ ${Math.floor(data.idleMin/60)}h ${data.idleMin%60}m 휴식</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">${topStr}</div>
+  `);
+}
+
+awUpdateCard();
+
+
 // Wait one frame so layout settles before measuring node positions
 requestAnimationFrame(() => {
   // Seed with a few staggered events
