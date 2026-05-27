@@ -2769,6 +2769,14 @@ async function whoopUpdateCard(data) {
         <div class="whoop-stat-val" style="color:#FBBF24">${data.weight_kg ?? '--'}</div>
         <div class="whoop-stat-lab">kg</div>
       </div>
+      <div class="whoop-stat">
+        <div class="whoop-stat-val" style="color:#A78BFA">${data.strain ?? '--'}</div>
+        <div class="whoop-stat-lab">Strain</div>
+      </div>
+      <div class="whoop-stat">
+        <div class="whoop-stat-val" style="color:#FB923C">${data.avg_hr ?? '--'} bpm</div>
+        <div class="whoop-stat-lab">Avg HR</div>
+      </div>
     </div>
     <div class="whoop-connect-label" style="margin-top:6px;font-family:var(--mono);font-size:9px;color:#84CC16;letter-spacing:0.08em;">● WHOOP LIVE</div>
   `;
