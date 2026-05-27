@@ -3119,6 +3119,74 @@ function renderL1Flows() {
   document.getElementById('l1-flows').innerHTML = flowHtml('A') + flowHtml('B') + convergeHtml;
 }
 
+
+function renderL1Analytics() {
+  const el = document.getElementById('l1-analytics');
+  if (!el) return;
+  el.style.display = 'block';
+
+  // GA4 데이터
+  let pv = '--', users = '--', sessions = '--';
+  try {
+    const raw = localStorage.getItem('ga4_dubaitoday');
+    if (raw) { const d = JSON.parse(raw); pv = d.pageviews; users = d.users; sessions = d.sessions; }
+  } catch(e) {}
+
+  el.innerHTML = `
+    <div style="margin:12px 0 8px;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+      <div style="font-size:10px;letter-spacing:0.1em;color:#6B7280;margin-bottom:10px;">GA4 · 오늘 트래픽</div>
+      <div style="display:flex;gap:16px;margin-bottom:12px;">
+        <div style="text-align:center;">
+          <div style="font-size:22px;font-weight:600;color:#22D3EE;font-family:monospace;" id="l1-pv">${pv}</div>
+          <div style="font-size:10px;color:#6B7280;">페이지뷰</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:22px;font-weight:600;color:#84CC16;font-family:monospace;" id="l1-users">${users}</div>
+          <div style="font-size:10px;color:#6B7280;">사용자</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:22px;font-weight:600;color:#A78BFA;font-family:monospace;" id="l1-sess">${sessions}</div>
+          <div style="font-size:10px;color:#6B7280;">세션</div>
+        </div>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:12px;">
+        <div style="height:100%;width:65%;background:linear-gradient(90deg,#22D3EE,#84CC16);border-radius:2px;"></div>
+      </div>
+      <div style="font-size:10px;letter-spacing:0.1em;color:#6B7280;margin-bottom:8px;">SNS 팔로워</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.2);border-radius:6px;padding:4px 10px;">
+          <span style="font-size:10px;color:#F472B6;">IG</span>
+          <span style="font-size:13px;font-weight:600;color:#F9FAFB;font-family:monospace;">—</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(229,231,235,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:4px 10px;">
+          <span style="font-size:10px;color:#9CA3AF;">THR</span>
+          <span style="font-size:13px;font-weight:600;color:#F9FAFB;font-family:monospace;">—</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(10,102,194,0.1);border:1px solid rgba(10,102,194,0.2);border-radius:6px;padding:4px 10px;">
+          <span style="font-size:10px;color:#60A5FA;">LI</span>
+          <span style="font-size:13px;font-weight:600;color:#F9FAFB;font-family:monospace;">—</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:4px 10px;">
+          <span style="font-size:10px;color:#9CA3AF;">NL</span>
+          <span style="font-size:13px;font-weight:600;color:#F9FAFB;font-family:monospace;">—</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // GA4 실데이터 fetch
+  fetch('/ga-data.json').then(r=>r.json()).then(data=>{
+    const dt = data.dubaitoday;
+    if (!dt) return;
+    const pvEl = document.getElementById('l1-pv');
+    const uEl = document.getElementById('l1-users');
+    const sEl = document.getElementById('l1-sess');
+    if (pvEl) pvEl.textContent = dt.pageviews.toLocaleString();
+    if (uEl) uEl.textContent = dt.users.toLocaleString();
+    if (sEl) sEl.textContent = dt.sessions.toLocaleString();
+  }).catch(()=>{});
+}
+
 function getL1Rel(el) {
   const r = el.getBoundingClientRect();
   const c = document.getElementById('l1-container').getBoundingClientRect();
@@ -3362,6 +3430,8 @@ function openL1(unitId) {
   if (titleEl) titleEl.textContent = data.title || 'L1 Console';
   renderL1Kpis();
   renderL1Flows();
+  if (unitId === 'dubaitoday') renderL1Analytics();
+  else document.getElementById('l1-analytics').style.display = 'none';
   document.getElementById('l1-modal').classList.add('active');
 
   // Spawn rapid initial burst so it feels alive immediately
